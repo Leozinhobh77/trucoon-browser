@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>TrucoON Browser</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1a0a2e">
+  <!-- PWA / iOS: permite "Adicionar à Tela de Início" abrindo em tela cheia -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TrucoON">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header id="barra">
+    <div class="marca">🃏 TrucoON</div>
+    <button id="btnModo" type="button" aria-label="Alternar modo de visualização">
+      <span id="iconeModo">🖥️</span>
+      <span id="textoModo">Modo Computador</span>
+    </button>
+    <button id="btnRecarregar" type="button" aria-label="Recarregar o jogo" title="Recarregar">⟳</button>
+  </header>
+
+  <main id="palco">
+    <iframe id="jogo"
+            src="https://trucoon.com.br/jogo/"
+            title="TrucoON"
+            allow="autoplay; fullscreen"
+            scrolling="yes"></iframe>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

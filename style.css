@@ -1,0 +1,99 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --altura-barra: 48px;
+  --roxo-escuro: #1a0a2e;
+  --roxo: #3d1d6b;
+  --dourado: #f5b942;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--roxo-escuro);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  /* respeita o notch do iPhone */
+  padding-top: env(safe-area-inset-top);
+}
+
+/* ---------- Barra superior ---------- */
+#barra {
+  height: var(--altura-barra);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  background: linear-gradient(180deg, var(--roxo), var(--roxo-escuro));
+  border-bottom: 2px solid var(--dourado);
+}
+
+.marca {
+  color: var(--dourado);
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+  margin-right: auto;
+}
+
+#btnModo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--dourado);
+  border-radius: 17px;
+  background: rgba(245, 185, 66, 0.12);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#btnModo:active {
+  background: rgba(245, 185, 66, 0.35);
+}
+
+#btnRecarregar {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  font-size: 17px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#btnRecarregar:active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ---------- Palco (área do jogo) ---------- */
+#palco {
+  position: relative;
+  width: 100%;
+  height: calc(100% - var(--altura-barra));
+  overflow: hidden;
+  /* rolagem suave no iOS quando o conteúdo escalado passa da tela */
+  -webkit-overflow-scrolling: touch;
+}
+
+#jogo {
+  border: 0;
+  display: block;
+  background: #000;
+  transform-origin: 0 0; /* escala a partir do canto superior esquerdo */
+}
+
+/* Modo celular em tela larga (PC): centraliza como um "telefone" */
+#palco.centralizado {
+  display: flex;
+  justify-content: center;
+}
