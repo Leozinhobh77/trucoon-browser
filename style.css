@@ -106,7 +106,8 @@ html, body {
   background: rgba(245, 185, 66, 0.35);
 }
 
-#btnRecarregar {
+#btnRecarregar,
+#btnTelaCheia {
   width: 34px;
   height: 34px;
   border: 1px solid rgba(255, 255, 255, 0.35);
@@ -118,8 +119,14 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
-#btnRecarregar:active {
+#btnRecarregar:active,
+#btnTelaCheia:active {
   background: rgba(255, 255, 255, 0.15);
+}
+
+/* escondido via JS quando o navegador não suporta tela cheia (Safari/iPhone) */
+#btnTelaCheia.indisponivel {
+  display: none;
 }
 
 /* ---------- Palco (área do jogo) ---------- */

@@ -27,6 +27,7 @@
   var iconeModo = document.getElementById('iconeModo');
   var textoModo = document.getElementById('textoModo');
   var btnRecarregar = document.getElementById('btnRecarregar');
+  var btnTelaCheia = document.getElementById('btnTelaCheia');
   var btnZoomMenos = document.getElementById('btnZoomMenos');
   var btnZoomMais = document.getElementById('btnZoomMais');
   var btnZoomReset = document.getElementById('btnZoomReset');
@@ -113,6 +114,49 @@
     // recarrega o jogo mantendo o modo e o zoom atuais
     jogo.src = jogo.src;
   });
+
+  /* ---------- Tela cheia ---------- */
+  var raiz = document.documentElement;
+  var suportaTelaCheia = !!(raiz.requestFullscreen || raiz.webkitRequestFullscreen);
+
+  function estaEmTelaCheia() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+
+  function atualizarBotaoTelaCheia() {
+    if (estaEmTelaCheia()) {
+      btnTelaCheia.textContent = '🗗';
+      btnTelaCheia.title = 'Sair da tela cheia';
+      btnTelaCheia.setAttribute('aria-label', 'Sair da tela cheia');
+    } else {
+      btnTelaCheia.textContent = '⛶';
+      btnTelaCheia.title = 'Tela cheia';
+      btnTelaCheia.setAttribute('aria-label', 'Tela cheia');
+    }
+  }
+
+  if (suportaTelaCheia) {
+    btnTelaCheia.addEventListener('click', function () {
+      if (estaEmTelaCheia()) {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      } else {
+        if (raiz.requestFullscreen) raiz.requestFullscreen();
+        else if (raiz.webkitRequestFullscreen) raiz.webkitRequestFullscreen();
+      }
+    });
+    document.addEventListener('fullscreenchange', function () {
+      atualizarBotaoTelaCheia();
+      aplicar(); // a tela muda de tamanho ao entrar/sair da tela cheia
+    });
+    document.addEventListener('webkitfullscreenchange', function () {
+      atualizarBotaoTelaCheia();
+      aplicar();
+    });
+  } else {
+    // Safari do iPhone não suporta: esconde o botão
+    btnTelaCheia.classList.add('indisponivel');
+  }
 
   // reaplica ao girar o celular ou redimensionar a janela
   window.addEventListener('resize', aplicar);
