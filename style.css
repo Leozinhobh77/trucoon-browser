@@ -39,6 +39,53 @@ html, body {
   margin-right: auto;
 }
 
+/* em telas bem estreitas, mostra só o ícone da marca */
+@media (max-width: 420px) {
+  .marcaTexto {
+    display: none;
+  }
+}
+
+/* ---------- Controle de zoom ---------- */
+#zoomCtrl {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 17px;
+  overflow: hidden;
+}
+
+#zoomCtrl button {
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#zoomCtrl button:active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+#btnZoomMenos,
+#btnZoomMais {
+  width: 34px;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+#btnZoomReset {
+  min-width: 46px;
+  padding: 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  border-left: 1px solid rgba(255, 255, 255, 0.25) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: var(--dourado);
+}
+
 #btnModo {
   display: flex;
   align-items: center;
@@ -80,8 +127,8 @@ html, body {
   position: relative;
   width: 100%;
   height: calc(100% - var(--altura-barra));
-  overflow: hidden;
-  /* rolagem suave no iOS quando o conteúdo escalado passa da tela */
+  /* com zoom > 100% o conteúdo passa da tela: permite arrastar/rolar */
+  overflow: auto;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -90,10 +137,4 @@ html, body {
   display: block;
   background: #000;
   transform-origin: 0 0; /* escala a partir do canto superior esquerdo */
-}
-
-/* Modo celular em tela larga (PC): centraliza como um "telefone" */
-#palco.centralizado {
-  display: flex;
-  justify-content: center;
 }

@@ -16,10 +16,15 @@
 <body>
 
   <header id="barra">
-    <div class="marca">🃏 TrucoON</div>
+    <div class="marca">🃏<span class="marcaTexto"> TrucoON</span></div>
+    <div id="zoomCtrl" role="group" aria-label="Controle de zoom">
+      <button id="btnZoomMenos" type="button" aria-label="Diminuir zoom">−</button>
+      <button id="btnZoomReset" type="button" aria-label="Restaurar zoom" title="Voltar para 100%">100%</button>
+      <button id="btnZoomMais" type="button" aria-label="Aumentar zoom">+</button>
+    </div>
     <button id="btnModo" type="button" aria-label="Alternar modo de visualização">
       <span id="iconeModo">🖥️</span>
-      <span id="textoModo">Modo Computador</span>
+      <span id="textoModo">Computador</span>
     </button>
     <button id="btnRecarregar" type="button" aria-label="Recarregar o jogo" title="Recarregar">⟳</button>
   </header>
