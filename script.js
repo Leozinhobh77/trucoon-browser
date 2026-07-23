@@ -40,6 +40,10 @@
   var btnZoomMais = document.getElementById('btnZoomMais');
   var btnZoomReset = document.getElementById('btnZoomReset');
   var controle = document.getElementById('controle');
+  var controleBarra = document.getElementById('controleBarra');
+  var corpo = document.getElementById('controleCorpo');
+  var btnMinimizar = document.getElementById('btnMinimizar');
+  var btnMaximizar = document.getElementById('btnMaximizar');
 
   // preferências salvas da última vez
   var modo = 'celular';
@@ -53,6 +57,13 @@
   // deslocamento atual da tela (em pixels da tela), aplicado como translate
   var panX = 0;
   var panY = 0;
+
+  // janela flutuante do controle: tamanho, posição "cheia" e estado minimizado
+  var LARG_JANELA = 128;
+  var ALT_JANELA = 138;
+  var janelaX = null;   // definido na 1ª vez (canto inferior direito)
+  var janelaY = null;
+  var janelaMin = false;
 
   function clampZoom(z) {
     return Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
@@ -108,8 +119,39 @@
     }
     btnZoomReset.textContent = Math.round(zoom * 100) + '%';
 
-    // 7) o controle de pinça/arrasto só aparece no modo computador
-    controle.style.display = (modo === 'computador') ? 'flex' : 'none';
+    // 7) o controle (janela flutuante) só aparece no modo computador
+    if (modo === 'computador') {
+      controle.style.display = 'flex';
+      if (janelaX === null) { // primeira vez: canto inferior direito
+        janelaX = palcoW - LARG_JANELA - 12;
+        janelaY = palcoH - ALT_JANELA - 14;
+      }
+      clampJanela();
+      aplicarPosicaoJanela();
+    } else {
+      controle.style.display = 'none';
+    }
+  }
+
+  // mantém a janela do controle dentro do palco
+  function clampJanela() {
+    if (janelaX === null) return;
+    var maxX = palco.clientWidth - LARG_JANELA - 8;
+    var maxY = palco.clientHeight - ALT_JANELA - 8;
+    janelaX = Math.max(8, Math.min(maxX, janelaX));
+    janelaY = Math.max(8, Math.min(maxY, janelaY));
+  }
+
+  // aplica a posição: minimizado vai pro canto superior esquerdo;
+  // maximizado volta pra onde estava (opção B)
+  function aplicarPosicaoJanela() {
+    if (janelaMin) {
+      controle.style.left = '10px';
+      controle.style.top = '10px';
+    } else {
+      controle.style.left = janelaX + 'px';
+      controle.style.top = janelaY + 'px';
+    }
   }
 
   // mantém o conteúdo dentro do palco: centraliza se for menor,
@@ -182,12 +224,12 @@
     }
   }
 
-  controle.addEventListener('touchstart', function (e) {
+  corpo.addEventListener('touchstart', function (e) {
     e.preventDefault();
     iniciarGesto(e.touches);
   }, { passive: false });
 
-  controle.addEventListener('touchmove', function (e) {
+  corpo.addEventListener('touchmove', function (e) {
     e.preventDefault();
     if (!gesto) return;
 
@@ -225,8 +267,50 @@
       iniciarGesto(e.touches);
     }
   }
-  controle.addEventListener('touchend', fimGesto);
-  controle.addEventListener('touchcancel', fimGesto);
+  corpo.addEventListener('touchend', fimGesto);
+  corpo.addEventListener('touchcancel', fimGesto);
+
+  /* ---------- Janela: arrastar pela barra + minimizar/maximizar ---------- */
+  var arrastoJanela = null;
+
+  controleBarra.addEventListener('touchstart', function (e) {
+    if (btnMinimizar.contains(e.target)) return; // toque no botão minimizar passa reto
+    e.preventDefault();
+    var t = e.touches[0];
+    arrastoJanela = { x: t.clientX, y: t.clientY };
+    controle.classList.add('arrastando');
+  }, { passive: false });
+
+  controleBarra.addEventListener('touchmove', function (e) {
+    if (!arrastoJanela) return;
+    e.preventDefault();
+    var t = e.touches[0];
+    janelaX += t.clientX - arrastoJanela.x;
+    janelaY += t.clientY - arrastoJanela.y;
+    arrastoJanela.x = t.clientX;
+    arrastoJanela.y = t.clientY;
+    clampJanela();
+    aplicarPosicaoJanela();
+  }, { passive: false });
+
+  function fimArrastoJanela() {
+    arrastoJanela = null;
+    controle.classList.remove('arrastando');
+  }
+  controleBarra.addEventListener('touchend', fimArrastoJanela);
+  controleBarra.addEventListener('touchcancel', fimArrastoJanela);
+
+  btnMinimizar.addEventListener('click', function () {
+    janelaMin = true;
+    controle.classList.add('minimizado');
+    aplicarPosicaoJanela();
+  });
+
+  btnMaximizar.addEventListener('click', function () {
+    janelaMin = false;
+    controle.classList.remove('minimizado');
+    aplicarPosicaoJanela();
+  });
 
   /* ---------- Tela cheia ---------- */
   var raiz = document.documentElement;

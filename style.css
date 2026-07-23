@@ -146,39 +146,116 @@ html, body {
   transform-origin: 0 0; /* escala/desloca a partir do canto superior esquerdo */
 }
 
-/* ---------- Controle flutuante (arrastar + pinça) ---------- */
+/* ---------- Controle flutuante (janela: arrastar + pinça + minimizar) ---------- */
 #controle {
   position: absolute;
-  right: 12px;
-  bottom: 14px;
-  width: 118px;
-  height: 118px;
-  display: none;              /* aparece só no modo computador (via JS) */
+  left: 0;                   /* posição real definida via JS (left/top) */
+  top: 0;
+  width: 128px;
+  display: none;             /* aparece só no modo computador (via JS) */
+  flex-direction: column;
+  border-radius: 14px;
+  border: 1px solid var(--dourado);
+  background: rgba(26, 10, 46, 0.82);
+  color: #fff;
+  z-index: 5;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  transition: left .28s ease, top .28s ease, width .28s ease, height .28s ease;
+}
+
+/* enquanto arrasta a janela, sem transição (segue o dedo na hora) */
+#controle.arrastando { transition: none; }
+
+/* barra de título: arrasta a janela e tem o botão de minimizar */
+#controleBarra {
+  display: flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 4px;
+  background: linear-gradient(180deg, var(--roxo), rgba(61, 29, 107, 0.35));
+  cursor: move;
+  touch-action: none;
+}
+
+.controleCanto { flex: 0 0 22px; } /* espelha o botão p/ centralizar o puxador */
+
+#controlePuxador {
+  flex: 1;
+  text-align: center;
+  color: var(--dourado);
+  font-size: 11px;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+#btnMinimizar {
+  flex: 0 0 22px;
+  height: 20px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#btnMinimizar:active { color: var(--dourado); }
+
+/* corpo: área do gesto (1 dedo move a tela, 2 dedos = zoom) */
+#controleCorpo {
+  flex: 1;
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   padding: 8px;
-  border-radius: 16px;
-  border: 1px solid var(--dourado);
-  background: rgba(26, 10, 46, 0.72);
-  color: #fff;
   font-size: 11px;
   line-height: 1.35;
   font-weight: 600;
-  z-index: 5;
   touch-action: none;        /* nós tratamos os gestos manualmente */
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  -webkit-user-select: none;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
-#controle:active {
-  background: rgba(61, 29, 107, 0.85);
-}
+#controleCorpo:active { background: rgba(61, 29, 107, 0.5); }
 
-#controleGuia .emoji {
-  display: block;
+#controleCorpo .emoji {
   font-size: 22px;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
+}
+
+/* botão de maximizar: só aparece no estado minimizado */
+#btnMaximizar {
+  display: none;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* estado minimizado: vira um chip redondo no canto superior esquerdo */
+#controle.minimizado {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(26, 10, 46, 0.9);
+}
+
+#controle.minimizado #controleBarra,
+#controle.minimizado #controleCorpo { display: none; }
+
+#controle.minimizado #btnMaximizar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }

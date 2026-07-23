@@ -37,12 +37,18 @@
             allow="autoplay; fullscreen"
             scrolling="yes"></iframe>
 
-    <!-- Controle de arrasto + pinça (só no modo computador) -->
+    <!-- Controle de arrasto + pinça (janelinha, só no modo computador) -->
     <div id="controle" role="group" aria-label="Controle de zoom e movimento">
-      <div id="controleGuia">
+      <div id="controleBarra">
+        <span class="controleCanto"></span>
+        <span id="controlePuxador" aria-hidden="true">⠿⠿⠿</span>
+        <button id="btnMinimizar" type="button" aria-label="Minimizar controle" title="Minimizar">−</button>
+      </div>
+      <div id="controleCorpo">
         <span class="emoji">🤏</span>
         pinça = zoom<br>arraste = mover
       </div>
+      <button id="btnMaximizar" type="button" aria-label="Abrir controle" title="Abrir controle">🔍</button>
     </div>
   </main>
 
