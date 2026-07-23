@@ -44,6 +44,7 @@
   var corpo = document.getElementById('controleCorpo');
   var btnMinimizar = document.getElementById('btnMinimizar');
   var btnMaximizar = document.getElementById('btnMaximizar');
+  var joystickKnob = document.getElementById('joystickKnob');
 
   // preferências salvas da última vez
   var modo = 'celular';
@@ -59,9 +60,10 @@
   var panY = 0;
 
   // janela flutuante do controle: tamanho, posição "cheia" e estado minimizado
-  var LARG_JANELA = 128;
-  var ALT_JANELA = 138;
-  var janelaX = null;   // definido na 1ª vez (canto inferior direito)
+  var LARG_JANELA = 172;
+  var ALT_JANELA = 184;
+  var RAIO_KNOB = 20;   // o quanto o knob do joystick anda ao arrastar
+  var janelaX = null;   // definido na 1ª vez (embaixo, centralizado)
   var janelaY = null;
   var janelaMin = false;
 
@@ -122,9 +124,9 @@
     // 7) o controle (janela flutuante) só aparece no modo computador
     if (modo === 'computador') {
       controle.style.display = 'flex';
-      if (janelaX === null) { // primeira vez: canto inferior direito
-        janelaX = palcoW - LARG_JANELA - 12;
-        janelaY = palcoH - ALT_JANELA - 14;
+      if (janelaX === null) { // primeira vez: embaixo, centralizado
+        janelaX = Math.round((palcoW - LARG_JANELA) / 2);
+        janelaY = palcoH - ALT_JANELA - 16;
       }
       clampJanela();
       aplicarPosicaoJanela();
@@ -218,10 +220,25 @@
         panYIni: panY
       };
     } else if (toques.length === 1) {
-      gesto = { modo: 'pan', ultX: toques[0].clientX, ultY: toques[0].clientY };
+      gesto = {
+        modo: 'pan',
+        ultX: toques[0].clientX, ultY: toques[0].clientY,
+        iniX: toques[0].clientX, iniY: toques[0].clientY
+      };
     } else {
       gesto = null;
     }
+  }
+
+  // move o knob do joystick pra dar a sensação de alavanca
+  function moverKnob(dx, dy) {
+    var ox = Math.max(-RAIO_KNOB, Math.min(RAIO_KNOB, dx));
+    var oy = Math.max(-RAIO_KNOB, Math.min(RAIO_KNOB, dy));
+    joystickKnob.style.transform = 'translate(' + ox + 'px,' + oy + 'px)';
+  }
+
+  function soltarKnob() {
+    joystickKnob.style.transform = '';
   }
 
   corpo.addEventListener('touchstart', function (e) {
@@ -240,6 +257,7 @@
       panY += (t.clientY - gesto.ultY) * PAN_SENS;
       gesto.ultX = t.clientX;
       gesto.ultY = t.clientY;
+      moverKnob(t.clientX - gesto.iniX, t.clientY - gesto.iniY);
       aplicar();
     } else if (gesto.modo === 'zoom' && e.touches.length >= 2) {
       // pinça: zoom proporcional à abertura dos dedos, ancorado no centro
@@ -251,6 +269,7 @@
       panX = cx - (cx - gesto.panXIni) * razao;
       panY = cy - (cy - gesto.panYIni) * razao;
       zoom = novoZoom;
+      soltarKnob();
       salvar();
       aplicar();
     } else {
@@ -262,6 +281,7 @@
   function fimGesto(e) {
     if (e.touches.length === 0) {
       gesto = null;
+      soltarKnob();
       salvar();
     } else {
       iniciarGesto(e.touches);

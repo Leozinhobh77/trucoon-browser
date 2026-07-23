@@ -146,25 +146,29 @@ html, body {
   transform-origin: 0 0; /* escala/desloca a partir do canto superior esquerdo */
 }
 
-/* ---------- Controle flutuante (janela: arrastar + pinça + minimizar) ---------- */
+/* ---------- Controle flutuante (janela: joystick + pinça + minimizar) ---------- */
 #controle {
   position: absolute;
   left: 0;                   /* posição real definida via JS (left/top) */
   top: 0;
-  width: 128px;
+  width: 172px;
   display: none;             /* aparece só no modo computador (via JS) */
   flex-direction: column;
-  border-radius: 14px;
-  border: 1px solid var(--dourado);
-  background: rgba(26, 10, 46, 0.82);
+  border-radius: 18px;
+  border: 1px solid rgba(245, 185, 66, 0.75);
+  background: linear-gradient(180deg, rgba(44, 20, 74, 0.97), rgba(20, 8, 36, 0.97));
   color: #fff;
   z-index: 5;
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
-  transition: left .28s ease, top .28s ease, width .28s ease, height .28s ease;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  transition: left .3s cubic-bezier(.2, .8, .2, 1),
+              top .3s cubic-bezier(.2, .8, .2, 1),
+              width .3s cubic-bezier(.2, .8, .2, 1),
+              height .3s cubic-bezier(.2, .8, .2, 1),
+              border-radius .3s ease;
 }
 
 /* enquanto arrasta a janela, sem transição (segue o dedo na hora) */
@@ -174,60 +178,89 @@ html, body {
 #controleBarra {
   display: flex;
   align-items: center;
-  height: 22px;
-  padding: 0 4px;
-  background: linear-gradient(180deg, var(--roxo), rgba(61, 29, 107, 0.35));
+  justify-content: space-between;
+  height: 30px;
+  padding: 0 6px 0 11px;
+  background: linear-gradient(180deg, var(--roxo), rgba(61, 29, 107, 0.5));
+  border-bottom: 1px solid rgba(245, 185, 66, 0.3);
   cursor: move;
   touch-action: none;
 }
 
-.controleCanto { flex: 0 0 22px; } /* espelha o botão p/ centralizar o puxador */
-
-#controlePuxador {
-  flex: 1;
-  text-align: center;
+#controleTitulo {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .3px;
   color: var(--dourado);
-  font-size: 11px;
-  letter-spacing: 1px;
-  line-height: 1;
+  white-space: nowrap;
 }
 
+/* botão minimizar: tracinho estilo janela do Windows */
 #btnMinimizar {
-  flex: 0 0 22px;
-  height: 20px;
+  position: relative;
+  width: 26px;
+  height: 22px;
   border: 0;
+  border-radius: 6px;
   background: transparent;
-  color: #fff;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-#btnMinimizar:active { color: var(--dourado); }
+#btnMinimizar::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 2px;
+  border-radius: 2px;
+  background: #fff;
+  transform: translate(-50%, -50%);
+}
+
+#btnMinimizar:active { background: rgba(255, 255, 255, 0.16); }
 
 /* corpo: área do gesto (1 dedo move a tela, 2 dedos = zoom) */
 #controleCorpo {
   flex: 1;
-  min-height: 96px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  padding: 8px;
-  font-size: 11px;
-  line-height: 1.35;
-  font-weight: 600;
+  gap: 9px;
+  padding: 13px 10px 15px;
   touch-action: none;        /* nós tratamos os gestos manualmente */
 }
 
-#controleCorpo:active { background: rgba(61, 29, 107, 0.5); }
+/* joystick decorativo (a área toda do corpo capta o gesto) */
+#joystick {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 36%, #6a3fb0, #2a1148 72%);
+  border: 2px solid rgba(245, 185, 66, 0.55);
+  box-shadow: inset 0 5px 12px rgba(0, 0, 0, 0.55), 0 3px 8px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-#controleCorpo .emoji {
-  font-size: 22px;
-  margin-bottom: 3px;
+#joystickKnob {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 34%, #ffd884, #d98f1e);
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.5), inset 0 -3px 6px rgba(0, 0, 0, 0.28);
+  transition: transform .12s ease-out;
+}
+
+#controleLegenda {
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.45;
+  font-weight: 600;
+  color: #e9dcff;
 }
 
 /* botão de maximizar: só aparece no estado minimizado */
@@ -236,17 +269,18 @@ html, body {
   border: 0;
   background: transparent;
   color: #fff;
-  font-size: 22px;
+  font-size: 26px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* estado minimizado: vira um chip redondo no canto superior esquerdo */
+/* estado minimizado: vira um chip redondo bonito no canto superior esquerdo */
 #controle.minimizado {
-  width: 44px;
-  height: 44px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
-  background: rgba(26, 10, 46, 0.9);
+  background: radial-gradient(circle at 50% 34%, #6a3fb0, #23103f);
+  border: 2px solid rgba(245, 185, 66, 0.7);
 }
 
 #controle.minimizado #controleBarra,
@@ -259,3 +293,5 @@ html, body {
   width: 100%;
   height: 100%;
 }
+
+#controle.minimizado #btnMaximizar:active { transform: scale(0.92); }

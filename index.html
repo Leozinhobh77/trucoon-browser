@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="TrucoON">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 
@@ -37,21 +37,20 @@
             allow="autoplay; fullscreen"
             scrolling="yes"></iframe>
 
-    <!-- Controle de arrasto + pinça (janelinha, só no modo computador) -->
+    <!-- Controle flutuante (janela: joystick + pinça), só no modo computador -->
     <div id="controle" role="group" aria-label="Controle de zoom e movimento">
       <div id="controleBarra">
-        <span class="controleCanto"></span>
-        <span id="controlePuxador" aria-hidden="true">⠿⠿⠿</span>
-        <button id="btnMinimizar" type="button" aria-label="Minimizar controle" title="Minimizar">−</button>
+        <span id="controleTitulo">🕹️ Joystick</span>
+        <button id="btnMinimizar" type="button" aria-label="Minimizar controle" title="Minimizar"></button>
       </div>
       <div id="controleCorpo">
-        <span class="emoji">🤏</span>
-        pinça = zoom<br>arraste = mover
+        <div id="joystick"><span id="joystickKnob"></span></div>
+        <div id="controleLegenda">🤏 pinça = zoom<br>👆 arraste = mover</div>
       </div>
-      <button id="btnMaximizar" type="button" aria-label="Abrir controle" title="Abrir controle">🔍</button>
+      <button id="btnMaximizar" type="button" aria-label="Abrir controle" title="Abrir controle">🕹️</button>
     </div>
   </main>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=3"></script>
 </body>
 </html>
