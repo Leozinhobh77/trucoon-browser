@@ -134,14 +134,51 @@ html, body {
   position: relative;
   width: 100%;
   height: calc(100% - var(--altura-barra));
-  /* com zoom > 100% o conteúdo passa da tela: permite arrastar/rolar */
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
+  /* trava a rolagem: o arrasto é feito pelo #controle, nunca sobra o fundo */
+  overflow: hidden;
+  touch-action: none;
 }
 
 #jogo {
   border: 0;
   display: block;
   background: #000;
-  transform-origin: 0 0; /* escala a partir do canto superior esquerdo */
+  transform-origin: 0 0; /* escala/desloca a partir do canto superior esquerdo */
+}
+
+/* ---------- Controle flutuante (arrastar + pinça) ---------- */
+#controle {
+  position: absolute;
+  right: 12px;
+  bottom: 14px;
+  width: 118px;
+  height: 118px;
+  display: none;              /* aparece só no modo computador (via JS) */
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8px;
+  border-radius: 16px;
+  border: 1px solid var(--dourado);
+  background: rgba(26, 10, 46, 0.72);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.35;
+  font-weight: 600;
+  z-index: 5;
+  touch-action: none;        /* nós tratamos os gestos manualmente */
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+#controle:active {
+  background: rgba(61, 29, 107, 0.85);
+}
+
+#controleGuia .emoji {
+  display: block;
+  font-size: 22px;
+  margin-bottom: 2px;
 }

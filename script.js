@@ -1,15 +1,22 @@
 /*
- * TrucoON Browser — alternador de modo celular / computador + zoom
+ * TrucoON Browser — alternador de modo celular / computador + zoom + pinça
  *
- * Como funciona: o jogo TrucoON decide o layout pela largura interna da
- * janela (<= 800px = celular, > 800px = computador) e refaz a detecção
- * no evento resize. Então basta controlar a LARGURA do iframe:
+ * Layout: o jogo TrucoON decide o layout pela largura interna da janela
+ * (<= 800px = celular, > 800px = computador) e refaz a detecção no resize.
+ * Então controlamos a LARGURA do iframe:
  *   - Modo celular:    largura interna <= 800px
- *   - Modo computador: largura interna  > 800px (usamos 1280px e
- *     aplicamos escala CSS para caber na tela do celular)
+ *   - Modo computador: largura interna  > 800px (usamos 1280px e encolhemos
+ *     por escala CSS para caber na tela do celular)
  *
- * O zoom multiplica essa escala; acima de 100% o conteúdo passa da tela
- * e o #palco vira uma área rolável (arrasta com o dedo para navegar).
+ * Zoom + arrasto: o conteúdo é sempre do tamanho exato do palco vezes o zoom.
+ * A gente aplica no iframe um transform "translate(pan) scale(escala)" e
+ * TRAVA (clamp) o arrasto nas bordas — assim nunca sobra aquele fundo roxo
+ * e, com zoom em 100%, a tela fica fixa igual no modo celular.
+ *
+ * Como o jogo vem de outro site dentro de um <iframe>, o navegador entrega
+ * o toque dos dedos pro jogo (não pra nós) quando o dedo está em cima dele.
+ * Por isso a pinça não funciona direto sobre o jogo. A solução é o CONTROLE
+ * flutuante (#controle): arrastar 1 dedo = mover a tela; pinça com 2 dedos = zoom.
  */
 
 (function () {
@@ -20,6 +27,7 @@
   var ZOOM_MIN = 1;    // 100%
   var ZOOM_MAX = 3;    // 300%
   var ZOOM_PASSO = 0.25;
+  var PAN_SENS = 1.4;  // o quanto a tela anda a cada "dedo" arrastado no controle
 
   var palco = document.getElementById('palco');
   var jogo = document.getElementById('jogo');
@@ -31,6 +39,7 @@
   var btnZoomMenos = document.getElementById('btnZoomMenos');
   var btnZoomMais = document.getElementById('btnZoomMais');
   var btnZoomReset = document.getElementById('btnZoomReset');
+  var controle = document.getElementById('controle');
 
   // preferências salvas da última vez
   var modo = 'celular';
@@ -39,7 +48,15 @@
     modo = localStorage.getItem('trucoon-modo') || 'celular';
     zoom = parseFloat(localStorage.getItem('trucoon-zoom')) || 1;
   } catch (e) { /* localStorage indisponível (navegação privada) */ }
-  zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoom));
+  zoom = clampZoom(zoom);
+
+  // deslocamento atual da tela (em pixels da tela), aplicado como translate
+  var panX = 0;
+  var panY = 0;
+
+  function clampZoom(z) {
+    return Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
+  }
 
   function salvar() {
     try {
@@ -49,34 +66,39 @@
   }
 
   function aplicar() {
-    var larguraPalco = palco.clientWidth;
-    var alturaPalco = palco.clientHeight;
+    var palcoW = palco.clientWidth;
+    var palcoH = palco.clientHeight;
 
     // 1) largura interna que o jogo vai "enxergar" (define celular vs PC)
     var larguraInterna;
     if (modo === 'celular') {
-      larguraInterna = (larguraPalco <= BREAKPOINT_JOGO) ? larguraPalco : LARGURA_CELULAR;
+      larguraInterna = (palcoW <= BREAKPOINT_JOGO) ? palcoW : LARGURA_CELULAR;
     } else {
-      larguraInterna = (larguraPalco > BREAKPOINT_JOGO) ? larguraPalco : LARGURA_DESKTOP;
+      larguraInterna = (palcoW > BREAKPOINT_JOGO) ? palcoW : LARGURA_DESKTOP;
     }
 
     // 2) escala base: faz o conteúdo caber na tela com zoom em 100%
-    var escalaBase = Math.min(larguraPalco / larguraInterna, 1);
+    var escalaBase = Math.min(palcoW / larguraInterna, 1);
     var escala = escalaBase * zoom;
 
     // 3) altura interna: preenche o palco quando o zoom está em 100%
-    var alturaInterna = Math.round(alturaPalco / escalaBase);
+    var alturaInterna = Math.round(palcoH / escalaBase);
+
+    // 4) tamanho VISUAL do conteúdo já escalado
+    var contentW = larguraInterna * escala;
+    var contentH = alturaInterna * escala;
+
+    // 5) trava o arrasto nas bordas (e centraliza quando cabe na tela)
+    panX = travar(panX, contentW, palcoW);
+    panY = travar(panY, contentH, palcoH);
 
     jogo.style.width = larguraInterna + 'px';
     jogo.style.height = alturaInterna + 'px';
-    jogo.style.transform = (escala !== 1) ? 'scale(' + escala + ')' : '';
+    jogo.style.marginLeft = '0';
+    jogo.style.transform =
+      'translate(' + panX + 'px,' + panY + 'px) scale(' + escala + ')';
 
-    // 4) centraliza horizontalmente quando o conteúdo é menor que a tela
-    var larguraVisual = larguraInterna * escala;
-    var sobra = larguraPalco - larguraVisual;
-    jogo.style.marginLeft = (sobra > 0) ? Math.floor(sobra / 2) + 'px' : '0';
-
-    // 5) atualiza a barra: o botão mostra o modo para o qual você VAI alternar
+    // 6) atualiza a barra: o botão mostra o modo para o qual você VAI alternar
     if (modo === 'celular') {
       iconeModo.textContent = '🖥️';
       textoModo.textContent = 'Computador';
@@ -85,35 +107,126 @@
       textoModo.textContent = 'Celular';
     }
     btnZoomReset.textContent = Math.round(zoom * 100) + '%';
+
+    // 7) o controle de pinça/arrasto só aparece no modo computador
+    controle.style.display = (modo === 'computador') ? 'flex' : 'none';
   }
 
-  function mudarZoom(delta) {
-    zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoom + delta));
-    zoom = Math.round(zoom * 100) / 100;
+  // mantém o conteúdo dentro do palco: centraliza se for menor,
+  // ou limita o arrasto às bordas se for maior (nunca mostra o roxo)
+  function travar(pan, contentSize, palcoSize) {
+    if (contentSize <= palcoSize) {
+      return (palcoSize - contentSize) / 2;
+    }
+    return Math.min(0, Math.max(palcoSize - contentSize, pan));
+  }
+
+  // muda o zoom mantendo fixo um ponto de foco (padrão: centro da tela)
+  function zoomPara(novoZoom, focoX, focoY) {
+    novoZoom = clampZoom(Math.round(novoZoom * 100) / 100);
+    if (focoX == null) { focoX = palco.clientWidth / 2; focoY = palco.clientHeight / 2; }
+    var razao = novoZoom / zoom;
+    panX = focoX - (focoX - panX) * razao;
+    panY = focoY - (focoY - panY) * razao;
+    zoom = novoZoom;
     salvar();
     aplicar();
   }
 
-  btnZoomMais.addEventListener('click', function () { mudarZoom(ZOOM_PASSO); });
-  btnZoomMenos.addEventListener('click', function () { mudarZoom(-ZOOM_PASSO); });
+  btnZoomMais.addEventListener('click', function () { zoomPara(zoom + ZOOM_PASSO); });
+  btnZoomMenos.addEventListener('click', function () { zoomPara(zoom - ZOOM_PASSO); });
   btnZoomReset.addEventListener('click', function () {
     zoom = 1;
+    panX = 0;
+    panY = 0;
     salvar();
     aplicar();
-    palco.scrollTo(0, 0);
   });
 
   btnModo.addEventListener('click', function () {
     modo = (modo === 'celular') ? 'computador' : 'celular';
+    zoom = 1;
+    panX = 0;
+    panY = 0;
     salvar();
     aplicar();
-    palco.scrollTo(0, 0);
   });
 
   btnRecarregar.addEventListener('click', function () {
     // recarrega o jogo mantendo o modo e o zoom atuais
     jogo.src = jogo.src;
   });
+
+  /* ---------- Controle flutuante: arrastar (pan) e pinça (zoom) ---------- */
+  var gesto = null;
+
+  function distancia(a, b) {
+    var dx = a.clientX - b.clientX;
+    var dy = a.clientY - b.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function iniciarGesto(toques) {
+    if (toques.length >= 2) {
+      gesto = {
+        modo: 'zoom',
+        distIni: distancia(toques[0], toques[1]),
+        zoomIni: zoom,
+        panXIni: panX,
+        panYIni: panY
+      };
+    } else if (toques.length === 1) {
+      gesto = { modo: 'pan', ultX: toques[0].clientX, ultY: toques[0].clientY };
+    } else {
+      gesto = null;
+    }
+  }
+
+  controle.addEventListener('touchstart', function (e) {
+    e.preventDefault();
+    iniciarGesto(e.touches);
+  }, { passive: false });
+
+  controle.addEventListener('touchmove', function (e) {
+    e.preventDefault();
+    if (!gesto) return;
+
+    if (gesto.modo === 'pan' && e.touches.length === 1) {
+      // arrasta a tela junto com o dedo (igual mexer numa foto)
+      var t = e.touches[0];
+      panX += (t.clientX - gesto.ultX) * PAN_SENS;
+      panY += (t.clientY - gesto.ultY) * PAN_SENS;
+      gesto.ultX = t.clientX;
+      gesto.ultY = t.clientY;
+      aplicar();
+    } else if (gesto.modo === 'zoom' && e.touches.length >= 2) {
+      // pinça: zoom proporcional à abertura dos dedos, ancorado no centro
+      var d = distancia(e.touches[0], e.touches[1]);
+      var novoZoom = clampZoom(gesto.zoomIni * (d / gesto.distIni));
+      var razao = novoZoom / gesto.zoomIni;
+      var cx = palco.clientWidth / 2;
+      var cy = palco.clientHeight / 2;
+      panX = cx - (cx - gesto.panXIni) * razao;
+      panY = cy - (cy - gesto.panYIni) * razao;
+      zoom = novoZoom;
+      salvar();
+      aplicar();
+    } else {
+      // trocou o número de dedos no meio do caminho: recomeça o gesto
+      iniciarGesto(e.touches);
+    }
+  }, { passive: false });
+
+  function fimGesto(e) {
+    if (e.touches.length === 0) {
+      gesto = null;
+      salvar();
+    } else {
+      iniciarGesto(e.touches);
+    }
+  }
+  controle.addEventListener('touchend', fimGesto);
+  controle.addEventListener('touchcancel', fimGesto);
 
   /* ---------- Tela cheia ---------- */
   var raiz = document.documentElement;
